@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snooker Masters - Play Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="game-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🎱 Snooker Masters</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#rules">Rules</a></li>
+                <li><a href="game.html" class="btn-play active">Play Now</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game Section -->
+    <section class="game-section">
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-panel">
+                    <div class="info-item">
+                        <span class="label">Score:</span>
+                        <span id="score" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Reds Left:</span>
+                        <span id="reds-left" class="value">15</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Fouls:</span>
+                        <span id="fouls" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Highest Break:</span>
+                        <span id="highest-break" class="value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Mode:</span>
+                        <span id="game-mode" class="value">Classic Snooker</span>
+                    </div>
+                </div>
+                
+                <canvas id="gameCanvas" width="1200" height="600"></canvas>
+                
+                <div class="power-info">
+                    <div class="power-label">Power</div>
+                    <div class="power-bar">
+                        <div id="power-fill" class="power-fill"></div>
+                    </div>
+                    <div class="power-value" id="power-value">0%</div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <h3>Controls</h3>
+                <ul>
+                    <li><strong>Mouse Move:</strong> Aim at the cue ball</li>
+                    <li><strong>Click & Drag:</strong> Set power (0-100%)</li>
+                    <li><strong>Shift + Drag:</strong> Add spin to shot</li>
+                    <li><strong>Release:</strong> Take your shot</li>
+                    <li><strong>R Key:</strong> Reset game</li>
+                    <li><strong>ESC Key:</strong> Back to menu</li>
+                </ul>
+
+                <div class="mode-selector">
+                    <h4>Game Mode</h4>
+                    <button id="mode-classic" class="btn-mode active" onclick="setGameMode('classic')">Classic</button>
+                    <button id="mode-practice" class="btn-mode" onclick="setGameMode('practice')">Practice</button>
+                    <button id="mode-tournament" class="btn-mode" onclick="setGameMode('tournament')">Tournament</button>
+                </div>
+                
+                <div class="button-group">
+                    <button id="reset-btn" class="btn-secondary">Reset Game (R)</button>
+                    <button id="sound-toggle" class="btn-secondary">🔊 Sound ON</button>
+                    <a href="index.html" class="btn-secondary">Back to Home</a>
+                </div>
+
+                <div class="tips">
+                    <h4>Tips</h4>
+                    <ul>
+                        <li>🎯 Aim carefully using the preview line</li>
+                        <li>⚡ Adjust power for different shots</li>
+                        <li>🎱 Pot reds before colors</li>
+                        <li>💪 Use cushions to your advantage</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Snooker Masters. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="constants.js"></script>
+    <script src="sounds.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

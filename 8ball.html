@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Ball Pool Masters</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="game-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🎱 Pool Masters</div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#rules">Rules</a></li>
+                <li><a href="8ball.html" class="btn-play active">8-Ball</a></li>
+                <li><a href="game.html">Snooker</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game Section -->
+    <section class="game-section">
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-panel">
+                    <div class="info-item">
+                        <span class="label">Player:</span>
+                        <span id="player" class="value">Player 1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Your Balls:</span>
+                        <span id="player-balls" class="value">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Balls Left:</span>
+                        <span id="balls-left" class="value">7</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Status:</span>
+                        <span id="game-status" class="value">Playing...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Fouls:</span>
+                        <span id="fouls" class="value">0</span>
+                    </div>
+                </div>
+                
+                <canvas id="gameCanvas" width="1000" height="500"></canvas>
+                
+                <div class="power-info">
+                    <div class="power-label">Power</div>
+                    <div class="power-bar">
+                        <div id="power-fill" class="power-fill"></div>
+                    </div>
+                    <div class="power-value" id="power-value">0%</div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <h3>8-Ball Pool Controls</h3>
+                <ul>
+                    <li><strong>Mouse Move:</strong> Aim at the cue ball</li>
+                    <li><strong>Click & Drag:</strong> Set power (0-100%)</li>
+                    <li><strong>Shift + Drag:</strong> Add spin to shot</li>
+                    <li><strong>Release:</strong> Take your shot</li>
+                    <li><strong>R Key:</strong> Reset game</li>
+                    <li><strong>ESC Key:</strong> Back to menu</li>
+                </ul>
+
+                <div class="mode-selector">
+                    <h4>Game Mode</h4>
+                    <button id="mode-casual" class="btn-mode active" onclick="setGameDifficulty('casual')">Casual</button>
+                    <button id="mode-competitive" class="btn-mode" onclick="setGameDifficulty('competitive')">Competitive</button>
+                </div>
+                
+                <div class="button-group">
+                    <button id="reset-btn" class="btn-secondary">Reset Game (R)</button>
+                    <button id="sound-toggle" class="btn-secondary">🔊 Sound ON</button>
+                    <a href="index.html" class="btn-secondary">Back to Home</a>
+                </div>
+
+                <div class="tips">
+                    <h4>How to Play</h4>
+                    <ul>
+                        <li>🎯 Sink either solids (1-7) or stripes (9-15)</li>
+                        <li>⚡ Then sink the 8-ball to win</li>
+                        <li>🚫 Don't sink the cue ball (scratch)</li>
+                        <li>💪 Use cushions strategically</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Pool Masters. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="constants.js"></script>
+    <script src="sounds.js"></script>
+    <script src="8ball.js"></script>
+</body>
+</html>

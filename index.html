@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snooker Masters - Professional Pool Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1a5f3b;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #f8f9fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1a3a52 0%, #2c3e50 100%);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: #e74c3c;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1a3a52 0%, #2c3e50 100%);
+            color: white;
+            padding: 80px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            min-height: 600px;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5em;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-content p {
+            font-size: 1.3em;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pool-table-preview {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 2/1;
+            background: linear-gradient(135deg, #1a5f3b 0%, #0f3d24 100%);
+            border: 15px solid #4a3728;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        .section h2 {
+            font-size: 2.5em;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .about {
+            background: white;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .about-card {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .about-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .about-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .about-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .rules {
+            background: #ecf0f1;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .rule-card {
+            background: white;
+            padding: 2rem;
+            border-left: 4px solid #e74c3c;
+            border-radius: 4px;
+        }
+
+        .rule-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .rule-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .features {
+            background: white;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .feature p {
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #1a3a52 0%, #2c3e50 100%);
+            color: white;
+        }
+
+        .stats .section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 3em;
+            margin-bottom: 0.5rem;
+            color: #e74c3c;
+        }
+
+        .stat-item p {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .cta {
+            background: #e74c3c;
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .cta h2 {
+            font-size: 2.5em;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .cta p {
+            font-size: 1.3em;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: #e74c3c;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #e74c3c;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 40px 15px;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .nav-menu {
+                gap: 1rem;
+            }
+
+            .section {
+                padding: 40px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🎱 Snooker Masters</div>
+            <ul class="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#rules">Rules</a></li>
+                <li><a href="game.html" style="background: #e74c3c; padding: 8px 16px; border-radius: 4px;">Play Now</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Snooker Masters</h1>
+            <p>Master the Classic Game of Skill and Strategy</p>
+            <a href="game.html" class="btn-primary">Start Playing</a>
+        </div>
+        <div class="hero-image">
+            <div class="pool-table-preview"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="section">
+            <h2>About Snooker</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="icon">📚</div>
+                    <h3>Classic Game</h3>
+                    <p>Snooker is a timeless cue sport played on a large green table with 22 balls. It combines precision, strategy, and skill.</p>
+                </div>
+                <div class="about-card">
+                    <div class="icon">🎯</div>
+                    <h3>Strategy & Skill</h3>
+                    <p>Requires careful aim, powerful shots, and tactical thinking. Players must pot red balls before colored balls in specific sequence.</p>
+                </div>
+                <div class="about-card">
+                    <div class="icon">🏆</div>
+                    <h3>Competitive</h3>
+                    <p>Played professionally worldwide with major tournaments and championships. Test your skills against challenging gameplay.</p>
+                </div>
+                <div class="about-card">
+                    <div class="icon">⚡</div>
+                    <h3>Fast-Paced</h3>
+                    <p>Every shot counts. Quick decision-making and precision timing are essential for victory.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rules Section -->
+    <section id="rules" class="rules">
+        <div class="section">
+            <h2>How to Play</h2>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <h3>1. Ball Setup</h3>
+                    <p>Start with cue ball in the D area. Red balls form a triangle. Colored balls placed on spots.</p>
+                </div>
+                <div class="rule-card">
+                    <h3>2. Basic Rules</h3>
+                    <p>Pot a red ball first, then a colored ball. After potting a color, put it back and pot another red.</p>
+                </div>
+                <div class="rule-card">
+                    <h3>3. Scoring</h3>
+                    <p>Red = 1 pt, Yellow = 2 pts, Green = 3 pts, Brown = 4 pts, Blue = 5 pts, Pink = 6 pts, Black = 7 pts</p>
+                </div>
+                <div class="rule-card">
+                    <h3>4. Winning</h3>
+                    <p>After potting all reds, pot colors in order. Highest score wins. Fouls cost points.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="section">
+            <h2>Game Features</h2>
+            <div class="features-list">
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <p>Realistic Physics Engine</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <p>Beautiful 3D Ball Rendering</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <p>Interactive Aiming System</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <p>Real-Time Scoring</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <p>Pocket Detection</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <p>Multiple Game Modes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="section">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;">
+                <div class="stat-item">
+                    <h3>100K+</h3>
+                    <p>Players Worldwide</p>
+                </div>
+                <div class="stat-item">
+                    <h3>5M+</h3>
+                    <p>Games Played</p>
+                </div>
+                <div class="stat-item">
+                    <h3>1000+</h3>
+                    <p>High Scores</p>
+                </div>
+                <div class="stat-item">
+                    <h3>99%</h3>
+                    <p>Satisfaction</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2>Ready to Play?</h2>
+        <p>Experience the thrill of professional snooker</p>
+        <a href="game.html" class="btn-primary">Play Now</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Snooker Masters</h4>
+                <p>The ultimate online snooker experience</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="#home">Home</a>
+                <a href="#about">About</a>
+                <a href="#rules">Rules</a>
+                <a href="game.html">Play</a>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <a href="#">Twitter</a>
+                <a href="#">Facebook</a>
+                <a href="#">Instagram</a>
+                <a href="#">Discord</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Snooker Masters. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
