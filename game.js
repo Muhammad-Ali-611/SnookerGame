@@ -12,7 +12,10 @@ let gameState = {
     highestBreak: 0,
     currentBreak: 0,
     gameMode: 'classic',  // CLASSIC, PRACTICE, TOURNAMENT
-    gameModeRules: null   // Will be set to GAME_MODE_RULES[gameMode]
+    gameModeRules: null,   // Will be set to GAME_MODE_RULES[gameMode]
+    expectingRed: true,   // True when player should pot a red ball
+    message: '',           // Current game message
+    messageTime: 0        // When to clear message
 };
 
 // Visual Effects State
@@ -63,7 +66,7 @@ class Ball {
         // Stop if speed is too low
         const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         const spinMagnitude = Math.abs(this.spin) + Math.abs(this.topspin) + Math.abs(this.sidespin);
-        if (speed < MIN_SPEED && spinMagnitude < 0.1) {
+        if (speed < MIN_SPEED && spinMagnitude < 0.05) {
             this.vx = 0;
             this.vy = 0;
             this.spin = 0;
@@ -139,31 +142,32 @@ class Ball {
         const dx = other.x - this.x;
         const dy = other.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = this.radius + other.radius;
 
-        if (distance < this.radius + other.radius) {
-            // Collision detected
+        if (distance < minDistance && distance > 0) {
+            // Collision detected - use proper elastic collision physics
             const angle = Math.atan2(dy, dx);
             const sin = Math.sin(angle);
             const cos = Math.cos(angle);
 
-            // Rotate velocities
+            // Rotate coordinate system so collision happens along x-axis
             const vx1 = this.vx * cos + this.vy * sin;
             const vy1 = this.vy * cos - this.vx * sin;
             const vx2 = other.vx * cos + other.vy * sin;
             const vy2 = other.vy * cos - other.vx * sin;
 
-            // Swap velocities (elastic collision, equal mass)
+            // Elastic collision with equal mass (swap x-velocities, keep y-velocities)
             const vx1Final = vx2;
             const vx2Final = vx1;
 
-            // Rotate back
+            // Rotate velocities back to original coordinate system
             this.vx = vx1Final * cos - vy1 * sin;
             this.vy = vy1 * cos + vx1Final * sin;
             other.vx = vx2Final * cos - vy2 * sin;
             other.vy = vy2 * cos + vx2Final * sin;
 
-            // Separate balls
-            const overlap = this.radius + other.radius - distance;
+            // Separate balls to prevent overlap
+            const overlap = minDistance - distance;
             const separationX = (overlap / 2) * cos;
             const separationY = (overlap / 2) * sin;
             this.x -= separationX;
@@ -171,8 +175,8 @@ class Ball {
             other.x += separationX;
             other.y += separationY;
 
-            // Play collision sound
-            const relativeVelocity = Math.sqrt((vx1Final - vx2Final) ** 2 + (vy1 - vy2) ** 2);
+            // Play collision sound based on relative velocity
+            const relativeVelocity = Math.abs(vx1Final - vx2Final);
             if (relativeVelocity > 0.5) {
                 soundManager.playBallCollisionSound(relativeVelocity);
             }
@@ -210,41 +214,63 @@ class Ball {
 
             // Draw ball markings (numbers for reds, stripes for colors)
             if (this.type === BALL_TYPES.RED) {
-                // Red balls - draw white circle with number
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius * 0.35, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Number on red ball
-                ctx.fillStyle = '#FF0000';
-                ctx.font = 'bold ' + (this.radius * 1.2) + 'px Arial';
+                // Red balls - solid red, no markings needed for snooker
+                // Optional: add subtle number for identification
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.font = 'bold ' + (this.radius * 0.8) + 'px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                // Assign number based on ball order
                 const ballIndex = gameState.balls.indexOf(this);
-                const redNum = (ballIndex - 6) % 15 + 1;  // Red balls start at index 6
-                ctx.fillText(redNum, this.x, this.y);
-            } else if ([BALL_TYPES.YELLOW, BALL_TYPES.GREEN, BALL_TYPES.BROWN, BALL_TYPES.BLUE, BALL_TYPES.PINK].includes(this.type)) {
-                // Colored balls - draw stripe band
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                if (ballIndex >= 6) {
+                    const redNum = (ballIndex - 6) % 15 + 1;
+                    ctx.fillText(redNum, this.x, this.y);
+                }
+            } else if (this.type === BALL_TYPES.YELLOW) {
+                // Yellow ball - white stripe
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.radius * 0.7, this.y);
+                ctx.lineTo(this.x + this.radius * 0.7, this.y);
+                ctx.stroke();
+            } else if (this.type === BALL_TYPES.GREEN) {
+                // Green ball - white stripe
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.radius * 0.7, this.y);
+                ctx.lineTo(this.x + this.radius * 0.7, this.y);
+                ctx.stroke();
+            } else if (this.type === BALL_TYPES.BROWN) {
+                // Brown ball - white stripe
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.radius * 0.7, this.y);
+                ctx.lineTo(this.x + this.radius * 0.7, this.y);
+                ctx.stroke();
+            } else if (this.type === BALL_TYPES.BLUE) {
+                // Blue ball - white stripe
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.radius * 0.7, this.y);
+                ctx.lineTo(this.x + this.radius * 0.7, this.y);
+                ctx.stroke();
+            } else if (this.type === BALL_TYPES.PINK) {
+                // Pink ball - white stripe
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.moveTo(this.x - this.radius * 0.7, this.y);
                 ctx.lineTo(this.x + this.radius * 0.7, this.y);
                 ctx.stroke();
             } else if (this.type === BALL_TYPES.BLACK) {
-                // Black ball - white circle with 8
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                // Black ball - white circle spot
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius * 0.4, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, this.radius * 0.35, 0, Math.PI * 2);
                 ctx.fill();
-                
-                ctx.fillStyle = '#000000';
-                ctx.font = 'bold ' + (this.radius * 1.3) + 'px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('8', this.x, this.y);
             }
 
             ctx.restore();
@@ -438,55 +464,66 @@ class Cue {
     draw(ctx) {
         ctx.save();
 
-        // Aiming line with glow
-        ctx.strokeStyle = 'rgba(255, 255, 150, 0.8)';
-        ctx.lineWidth = 3;
-        ctx.shadowColor = 'rgba(255, 255, 0, 0.6)';
-        ctx.shadowBlur = 15;
+        // Aiming line with glow (shows trajectory)
+        ctx.strokeStyle = 'rgba(255, 255, 150, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(255, 255, 0, 0.4)';
+        ctx.shadowBlur = 10;
         ctx.setLineDash([8, 4]);
         ctx.beginPath();
         ctx.moveTo(this.ball.x, this.ball.y);
         ctx.lineTo(
-            this.ball.x + Math.cos(this.angle) * 300,
-            this.ball.y + Math.sin(this.angle) * 300
+            this.ball.x + Math.cos(this.angle) * 400,
+            this.ball.y + Math.sin(this.angle) * 400
         );
         ctx.stroke();
         ctx.shadowColor = 'transparent';
         ctx.setLineDash([]);
 
-        // Impact circle preview
-        ctx.strokeStyle = 'rgba(255, 200, 100, 0.5)';
+        // Power indicator circle
+        ctx.strokeStyle = `rgba(255, ${200 - this.power * 1.5}, 0, 0.7)`;
         ctx.lineWidth = 2;
-        const impactDist = 50 + (this.power / 100) * 30;
+        const impactDist = 30 + (this.power / 100) * 40;
         ctx.beginPath();
         ctx.arc(
             this.ball.x + Math.cos(this.angle) * impactDist,
             this.ball.y + Math.sin(this.angle) * impactDist,
-            this.ball.radius * 2,
+            this.ball.radius * 1.8,
             0,
             Math.PI * 2
         );
         ctx.stroke();
 
-        // Cue stick
-        const cueLength = 80 + this.power * 0.6;
-        const cueX = this.ball.x - Math.cos(this.angle) * cueLength;
-        const cueY = this.ball.y - Math.sin(this.angle) * cueLength;
+        // Cue stick (drawn behind ball)
+        const cueLength = 100 + this.power * 0.8;
+        const cueStartX = this.ball.x - Math.cos(this.angle) * (cueLength + this.ball.radius);
+        const cueStartY = this.ball.y - Math.sin(this.angle) * (cueLength + this.ball.radius);
+        const cueEndX = this.ball.x - Math.cos(this.angle) * (this.ball.radius + 5);
+        const cueEndY = this.ball.y - Math.sin(this.angle) * (this.ball.radius + 5);
 
-        ctx.strokeStyle = '#8B4513';
-        ctx.lineWidth = 6 + this.power * 0.15;
+        // Cue stick gradient
+        const cueGradient = ctx.createLinearGradient(cueStartX, cueStartY, cueEndX, cueEndY);
+        cueGradient.addColorStop(0, '#654321'); // Dark brown
+        cueGradient.addColorStop(0.5, '#8B4513'); // Medium brown
+        cueGradient.addColorStop(1, '#A0522D'); // Lighter brown
+        
+        ctx.strokeStyle = cueGradient;
+        ctx.lineWidth = 8 + this.power * 0.2;
         ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
         ctx.beginPath();
-        ctx.moveTo(cueX, cueY);
-        ctx.lineTo(this.ball.x - Math.cos(this.angle) * 10, this.ball.y - Math.sin(this.angle) * 10);
+        ctx.moveTo(cueStartX, cueStartY);
+        ctx.lineTo(cueEndX, cueEndY);
         ctx.stroke();
 
-        // Cue tip
+        // Cue tip (leather)
         ctx.fillStyle = '#FFD700';
         ctx.beginPath();
-        ctx.arc(this.ball.x - Math.cos(this.angle) * 10, this.ball.y - Math.sin(this.angle) * 10, 6, 0, Math.PI * 2);
+        ctx.arc(cueEndX, cueEndY, 7, 0, Math.PI * 2);
         ctx.fill();
+        
+        ctx.strokeStyle = '#B8860B';
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
         ctx.restore();
     }
@@ -560,10 +597,26 @@ function attachEventListeners() {
 }
 
 function handleMouseDown(e) {
+    if (gameState.isShooting) return; // Don't allow aiming while balls are moving
+    
     const rect = canvas.getBoundingClientRect();
-    mouseState.dragStartX = e.clientX - rect.left;
-    mouseState.dragStartY = e.clientY - rect.top;
-    mouseState.isDragging = true;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Only allow aiming if clicking near the cue ball
+    if (gameState.balls.length > 0 && !gameState.balls[0].potted) {
+        const cueBall = gameState.balls[0];
+        const dx = mouseX - cueBall.x;
+        const dy = mouseY - cueBall.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Allow dragging if clicking within reasonable distance of cue ball
+        if (distance < 200) {
+            mouseState.dragStartX = mouseX;
+            mouseState.dragStartY = mouseY;
+            mouseState.isDragging = true;
+        }
+    }
 }
 
 function handleMouseMove(e) {
@@ -583,27 +636,40 @@ function handleMouseMove(e) {
 }
 
 function handleMouseUp(e) {
-    if (!mouseState.isDragging || gameState.isShooting) return;
+    if (!mouseState.isDragging || gameState.isShooting) {
+        mouseState.isDragging = false;
+        updatePowerDisplay(0);
+        return;
+    }
+
+    if (gameState.balls.length === 0 || gameState.balls[0].potted) {
+        mouseState.isDragging = false;
+        updatePowerDisplay(0);
+        return;
+    }
 
     const dx = mouseState.dragStartX - mouseState.x;
     const dy = mouseState.dragStartY - mouseState.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
+    // Minimum distance to register a shot
     if (distance > 10) {
+        const cueBall = gameState.balls[0];
+        
+        // Calculate angle from cue ball to drag end point
         const angle = Math.atan2(dy, dx);
         const power = Math.min(distance / 3, 100);
         const strength = (power / 100) * SHOT_POWER;
 
-        gameState.balls[0].vx = Math.cos(angle) * strength;
-        gameState.balls[0].vy = Math.sin(angle) * strength;
+        // Apply velocity to cue ball
+        cueBall.vx = Math.cos(angle) * strength;
+        cueBall.vy = Math.sin(angle) * strength;
 
         // Add spin if Shift key is held during shot
         if (e.shiftKey) {
             // Shift + drag creates topspin/backspin based on drag direction
-            const dragAngle = Math.atan2(mouseState.dragStartY - mouseState.y, 
-                                         mouseState.dragStartX - mouseState.x);
             const spinAmount = (power / 100) * 5;  // Max spin of 5
-            gameState.balls[0].topspin = spinAmount;  // Topspin effect
+            cueBall.topspin = spinAmount;  // Topspin effect
         }
 
         gameState.isShooting = true;
@@ -636,7 +702,13 @@ function resetGame() {
     gameState.fouls = 0;
     gameState.breaks = 0;
     gameState.currentBreak = 0;
+    gameState.expectingRed = true;
+    gameState.message = '';
+    gameState.messageTime = 0;
     gameState.gameModeRules = GAME_MODE_RULES[gameState.gameMode];
+    visualEffects.potFlashes = [];
+    visualEffects.scorePopups = [];
+    visualEffects.cushionHits = [];
     setupBalls();
     updateUI();
 }
@@ -647,18 +719,36 @@ function updatePowerDisplay(power) {
 }
 
 function updateUI() {
-    document.getElementById('score').textContent = gameState.score;
-    document.getElementById('reds-left').textContent = gameState.redsLeft;
-    document.getElementById('fouls').textContent = gameState.fouls;
-    document.getElementById('highest-break').textContent = gameState.highestBreak;
-    document.getElementById('game-mode').textContent = gameState.gameModeRules.name;
+    const scoreEl = document.getElementById('score');
+    const redsLeftEl = document.getElementById('reds-left');
+    const foulsEl = document.getElementById('fouls');
+    const highestBreakEl = document.getElementById('highest-break');
+    const gameModeEl = document.getElementById('game-mode');
+    
+    if (scoreEl) scoreEl.textContent = gameState.score;
+    if (redsLeftEl) redsLeftEl.textContent = gameState.redsLeft;
+    if (foulsEl) foulsEl.textContent = gameState.fouls;
+    if (highestBreakEl) highestBreakEl.textContent = gameState.highestBreak;
+    if (gameModeEl) gameModeEl.textContent = gameState.gameModeRules ? gameState.gameModeRules.name : 'Unknown';
 }
 
 // Switch game mode
 function setGameMode(mode) {
-    if (GAME_MODES[mode] || GAME_MODES[mode.toUpperCase()]) {
-        gameState.gameMode = mode.toLowerCase();
-        gameState.gameModeRules = GAME_MODE_RULES[mode.toLowerCase()];
+    const modeKey = mode.toLowerCase();
+    if (GAME_MODE_RULES[modeKey]) {
+        gameState.gameMode = modeKey;
+        gameState.gameModeRules = GAME_MODE_RULES[modeKey];
+        
+        // Update active button
+        document.querySelectorAll('.btn-mode').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const btnId = 'mode-' + modeKey;
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.classList.add('active');
+        }
+        
         resetGame();
     }
 }
@@ -685,9 +775,13 @@ function initGame() {
     gameState.currentBreak = 0;
     gameState.gameMode = GAME_MODES.CLASSIC;
     gameState.gameModeRules = GAME_MODE_RULES[GAME_MODES.CLASSIC];
+    gameState.expectingRed = true;
+    gameState.message = '';
+    gameState.messageTime = 0;
 
     setupBalls();
     attachEventListeners();
+    updateUI();
     gameLoop();
 }
 
@@ -708,10 +802,12 @@ function update() {
         }
     }
 
-    // Ball-to-ball collisions
+    // Ball-to-ball collisions (check all pairs once)
     for (let i = 0; i < gameState.balls.length; i++) {
+        if (gameState.balls[i].potted) continue;
+        
         for (let j = i + 1; j < gameState.balls.length; j++) {
-            if (!gameState.balls[i].potted && !gameState.balls[j].potted) {
+            if (!gameState.balls[j].potted) {
                 gameState.balls[i].collideWith(gameState.balls[j]);
             }
         }
@@ -721,50 +817,110 @@ function update() {
     const table = new Table();
     
     // Check if cue ball was potted (ball 0)
-    if (!gameState.balls[0].potted && gameState.balls[0].isPotted(table)) {
-        // Cue ball potted - place it on the spot in front of brown ball (on baulk line)
-        gameState.balls[0].potted = true;
+    if (gameState.balls.length > 0 && !gameState.balls[0].potted && gameState.balls[0].isPotted(table)) {
+        // Cue ball potted - place it back on the baulk line
         gameState.balls[0].vx = 0;
         gameState.balls[0].vy = 0;
         
-        // Reset position to spot on baulk line, slightly forward of brown ball
+        // Reset position to spot on baulk line (D area)
         gameState.balls[0].x = 600;
         gameState.balls[0].y = 480;  // Slightly forward of baulk line (500)
-        gameState.balls[0].potted = false;  // Mark as no longer potted (back in play)
-        gameState.isShooting = false;
+        
+        // Apply foul penalty
+        gameState.fouls++;
+        gameState.score = Math.max(0, gameState.score - gameState.gameModeRules.foulPenalty);
+        
+        // Play foul sound
+        soundManager.playBeep(200, 300, 0.5);
     }
     
     // Check other balls (colored and red)
     for (let i = 1; i < gameState.balls.length; i++) {
         if (!gameState.balls[i].potted && gameState.balls[i].isPotted(table)) {
-            const value = getBallValue(gameState.balls[i].type);
-            gameState.score += value;
-            gameState.lastPottedBall = gameState.balls[i].type;
-
-            if (gameState.balls[i].type === BALL_TYPES.RED) {
-                gameState.redsLeft--;
+            const ball = gameState.balls[i];
+            const value = getBallValue(ball.type);
+            let isValidPot = true;
+            
+            // Apply snooker rules (only in classic/tournament mode)
+            if (gameState.gameMode !== 'practice') {
+                if (gameState.expectingRed) {
+                    // Should pot a red ball
+                    if (ball.type !== BALL_TYPES.RED) {
+                        isValidPot = false;
+                        gameState.message = 'Foul! Must pot a red ball first';
+                        gameState.messageTime = Date.now() + 3000;
+                        gameState.fouls++;
+                        gameState.score = Math.max(0, gameState.score - gameState.gameModeRules.foulPenalty);
+                    }
+                } else {
+                    // Should pot a colored ball
+                    if (ball.type === BALL_TYPES.RED) {
+                        isValidPot = false;
+                        gameState.message = 'Foul! Must pot a colored ball';
+                        gameState.messageTime = Date.now() + 3000;
+                        gameState.fouls++;
+                        gameState.score = Math.max(0, gameState.score - gameState.gameModeRules.foulPenalty);
+                    }
+                }
             }
+            
+            if (isValidPot) {
+                // Mark ball as potted
+                ball.potted = true;
+                ball.vx = 0;
+                ball.vy = 0;
+                
+                // Update score
+                gameState.score += value;
+                gameState.currentBreak += value;
+                gameState.lastPottedBall = ball.type;
 
-            // Play pot sound
-            soundManager.playPotSound();
+                if (ball.type === BALL_TYPES.RED) {
+                    gameState.redsLeft = Math.max(0, gameState.redsLeft - 1);
+                    gameState.expectingRed = false; // Next should be a color
+                } else {
+                    // Colored ball potted - if reds remain, next should be red
+                    if (gameState.redsLeft > 0) {
+                        gameState.expectingRed = true;
+                        // In real snooker, colored balls are respotted, but for simplicity we'll skip that
+                    } else {
+                        // All reds are gone, pot colors in order
+                        gameState.expectingRed = false;
+                    }
+                }
 
-            // Add pot flash effect
-            const pocketPos = getPocketNearestToBall(gameState.balls[i]);
-            visualEffects.potFlashes.push({
-                x: pocketPos.x,
-                y: pocketPos.y,
-                time: 0,
-                duration: 300
-            });
+                // Play pot sound
+                soundManager.playPotSound();
 
-            // Add score popup
-            visualEffects.scorePopups.push({
-                x: gameState.balls[i].x,
-                y: gameState.balls[i].y,
-                text: '+' + value,
-                time: 0,
-                duration: 800
-            });
+                // Add pot flash effect
+                const pocketPos = getPocketNearestToBall(ball);
+                visualEffects.potFlashes.push({
+                    x: pocketPos.x,
+                    y: pocketPos.y,
+                    startTime: null,
+                    duration: 300
+                });
+
+                // Add score popup
+                visualEffects.scorePopups.push({
+                    x: ball.x,
+                    y: ball.y,
+                    text: '+' + value,
+                    startTime: null,
+                    duration: 800
+                });
+
+                // Update highest break
+                if (gameState.currentBreak > gameState.highestBreak) {
+                    gameState.highestBreak = gameState.currentBreak;
+                }
+            } else {
+                // Invalid pot - mark as potted but don't score
+                ball.potted = true;
+                ball.vx = 0;
+                ball.vy = 0;
+                soundManager.playBeep(200, 300, 0.5); // Foul sound
+            }
 
             updateUI();
         }
@@ -785,7 +941,16 @@ function update() {
 
         if (allStopped) {
             gameState.isShooting = false;
+            // Reset current break if no balls were potted this turn
+            if (gameState.currentBreak === 0) {
+                gameState.currentBreak = 0;
+            }
         }
+    }
+    
+    // Clear message after timeout
+    if (gameState.message && Date.now() > gameState.messageTime) {
+        gameState.message = '';
     }
 }
 
@@ -796,14 +961,16 @@ function draw() {
     // Draw all balls
     for (let i = 0; i < gameState.balls.length; i++) {
         try {
-            gameState.balls[i].draw(ctx);
+            if (!gameState.balls[i].potted) {
+                gameState.balls[i].draw(ctx);
+            }
         } catch (e) {
             console.error('Error drawing ball', i, ':', e);
         }
     }
 
-    // Draw cue when aiming
-    if (!gameState.isShooting && mouseState.isDragging) {
+    // Draw cue when aiming (only if cue ball exists and isn't potted)
+    if (!gameState.isShooting && mouseState.isDragging && gameState.balls.length > 0 && !gameState.balls[0].potted) {
         const cue = new Cue(gameState.balls[0]);
         const dx = mouseState.dragStartX - mouseState.x;
         const dy = mouseState.dragStartY - mouseState.y;
@@ -814,45 +981,97 @@ function draw() {
     }
 
     // Draw aiming preview when mouse is over table
-    if (!gameState.isShooting && !mouseState.isDragging && gameState.balls.length > 0) {
+    if (!gameState.isShooting && !mouseState.isDragging && gameState.balls.length > 0 && !gameState.balls[0].potted) {
         drawAimingPreview();
     }
 
     // Draw visual effects (pot flashes and score popups)
     drawVisualEffects();
+    
+    // Draw game message
+    if (gameState.message) {
+        drawGameMessage();
+    }
+    
+    // Draw turn indicator
+    drawTurnIndicator();
+}
+
+function drawGameMessage() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(231, 76, 60, 0.9)';
+    ctx.fillRect(50, 50, 300, 60);
+    
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(50, 50, 300, 60);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(gameState.message, 200, 80);
+    ctx.restore();
+}
+
+function drawTurnIndicator() {
+    if (gameState.isShooting) return;
+    
+    ctx.save();
+    const indicatorY = 120;
+    const indicatorText = gameState.expectingRed ? 'Pot RED ball' : 'Pot COLORED ball';
+    const indicatorColor = gameState.expectingRed ? '#FF0000' : '#FFD700';
+    
+    ctx.fillStyle = `rgba(0, 0, 0, 0.7)`;
+    ctx.fillRect(50, indicatorY, 250, 35);
+    
+    ctx.strokeStyle = indicatorColor;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(50, indicatorY, 250, 35);
+    
+    ctx.fillStyle = indicatorColor;
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(indicatorText, 60, indicatorY + 17.5);
+    ctx.restore();
 }
 
 function drawAimingPreview() {
     if (!gameState.balls || gameState.balls.length === 0) return;
     
     const cueBall = gameState.balls[0];
-    if (!cueBall) return;
+    if (!cueBall || cueBall.potted) return;
     
     const dx = mouseState.x - cueBall.x;
     const dy = mouseState.y - cueBall.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (distance < 30) return;
+    // Only show preview if mouse is reasonably far from cue ball
+    if (distance < 50) return;
     
     const angle = Math.atan2(dy, dx);
     
     ctx.save();
     
-    // Aiming line
-    ctx.strokeStyle = 'rgba(255, 255, 100, 0.4)';
+    // Aiming line (dashed)
+    ctx.strokeStyle = 'rgba(255, 255, 150, 0.5)';
     ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
+    ctx.setLineDash([8, 4]);
+    ctx.shadowColor = 'rgba(255, 255, 0, 0.3)';
+    ctx.shadowBlur = 5;
     ctx.beginPath();
     ctx.moveTo(cueBall.x, cueBall.y);
     ctx.lineTo(
-        cueBall.x + Math.cos(angle) * 400,
-        cueBall.y + Math.sin(angle) * 400
+        cueBall.x + Math.cos(angle) * 500,
+        cueBall.y + Math.sin(angle) * 500
     );
     ctx.stroke();
+    ctx.shadowColor = 'transparent';
     ctx.setLineDash([]);
     
-    // Impact zone
-    ctx.strokeStyle = 'rgba(100, 200, 255, 0.5)';
+    // Impact zone indicator
+    ctx.strokeStyle = 'rgba(100, 200, 255, 0.6)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(
@@ -864,6 +1083,25 @@ function drawAimingPreview() {
     );
     ctx.stroke();
     
+    // Direction arrow
+    const arrowLength = 30;
+    const arrowX = cueBall.x + Math.cos(angle) * (cueBall.radius + arrowLength);
+    const arrowY = cueBall.y + Math.sin(angle) * (cueBall.radius + arrowLength);
+    
+    ctx.fillStyle = 'rgba(255, 255, 100, 0.7)';
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY);
+    ctx.lineTo(
+        arrowX - Math.cos(angle - Math.PI / 6) * 10,
+        arrowY - Math.sin(angle - Math.PI / 6) * 10
+    );
+    ctx.lineTo(
+        arrowX - Math.cos(angle + Math.PI / 6) * 10,
+        arrowY - Math.sin(angle + Math.PI / 6) * 10
+    );
+    ctx.closePath();
+    ctx.fill();
+    
     ctx.restore();
 }
 
@@ -873,21 +1111,21 @@ function drawVisualEffects() {
 
     // Draw pot flashes
     visualEffects.potFlashes = visualEffects.potFlashes.filter(flash => {
-        const elapsed = currentTime - flash.startTime;
         if (!flash.startTime) {
             flash.startTime = currentTime;
         }
-        const elapsed2 = currentTime - flash.startTime;
-        const progress = elapsed2 / flash.duration;
+        const elapsed = currentTime - flash.startTime;
+        const progress = elapsed / flash.duration;
 
         if (progress <= 1) {
             ctx.save();
-            ctx.fillStyle = `rgba(255, 215, 0, ${(1 - progress) * 0.6})`;
+            const alpha = (1 - progress) * 0.6;
+            ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
             ctx.beginPath();
             ctx.arc(flash.x, flash.y, 20 + progress * 30, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.strokeStyle = `rgba(255, 215, 0, ${(1 - progress) * 0.8})`;
+            ctx.strokeStyle = `rgba(255, 215, 0, ${alpha * 1.3})`;
             ctx.lineWidth = 3;
             ctx.stroke();
             ctx.restore();
@@ -898,12 +1136,11 @@ function drawVisualEffects() {
 
     // Draw score popups
     visualEffects.scorePopups = visualEffects.scorePopups.filter(popup => {
-        const elapsed = currentTime - popup.startTime;
         if (!popup.startTime) {
             popup.startTime = currentTime;
         }
-        const elapsed2 = currentTime - popup.startTime;
-        const progress = elapsed2 / popup.duration;
+        const elapsed = currentTime - popup.startTime;
+        const progress = elapsed / popup.duration;
 
         if (progress <= 1) {
             ctx.save();
@@ -944,6 +1181,19 @@ function getPocketNearestToBall(ball) {
 
 // Start Game
 window.addEventListener('DOMContentLoaded', () => {
+    // Ensure constants are loaded
+    if (typeof BALL_TYPES === 'undefined' || typeof GAME_MODE_RULES === 'undefined') {
+        console.error('Constants not loaded! Make sure constants.js is loaded before game.js');
+        return;
+    }
+    
     initGame();
-    updateUI();
+    
+    // Show initial instructions
+    setTimeout(() => {
+        if (gameState.message === '') {
+            gameState.message = 'Click and drag from cue ball to aim and set power';
+            gameState.messageTime = Date.now() + 4000;
+        }
+    }, 500);
 });
